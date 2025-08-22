@@ -119,6 +119,16 @@ class APIResponse {
   }
 
   /**
+   * Create a service unavailable response (503)
+   * @param {string} message - Error message
+   * @param {any} data - Error data
+   * @returns {APIResponse} APIResponse instance
+   */
+  static serviceUnavailable(message = "Service unavailable", data = null) {
+    return new APIResponse(503, data, message, false);
+  }
+
+  /**
    * Send the response using Express response object
    * @param {Object} res - Express response object
    * @returns {Object} Express response

@@ -1,0 +1,21 @@
+{
+  "preset": "es6",
+  "testEnvironment": "node",
+  "extensionsToTreatAsEsm": [".js"],
+  "globals": {
+    "NODE_OPTIONS": "--experimental-vm-modules"
+  },
+  "transform": {},
+  "testMatch": [
+    "**/tests/**/*.test.js",
+    "**/tests/**/*.spec.js"
+  ],
+  "moduleFileExtensions": ["js"],
+  "collectCoverageFrom": [
+    "src/**/*.js",
+    "!src/tests/**",
+    "!src/examples/**"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"]
+}
