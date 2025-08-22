@@ -1,9 +1,6 @@
 {
+  "preset": "@jest/preset-default",
   "testEnvironment": "node",
-  "extensionsToTreatAsEsm": [".js"],
-  "globals": {
-    "NODE_OPTIONS": "--experimental-vm-modules"
-  },
   "transform": {},
   "testMatch": [
     "**/tests/**/*.test.js",
