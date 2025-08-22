@@ -1,6 +1,8 @@
 import express from "express";
 import logger, { requestLogger, loggerUtils } from "./config/logger.js";
 import config from "./config/env.js";
+import { errorHandler, notFoundHandler, setupGlobalErrorHandlers } from "./middleware/errorHandler.js";
+import { APIResponse } from "./utils/index.js";
 
 const app = express();
 
@@ -14,40 +16,22 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Health check endpoint
 app.get("/health", (req, res) => {
   logger.info("Health check requested");
-  res.status(200).json({
+  const response = APIResponse.success({
     status: "OK",
-    timestamp: new Date().toISOString(),
     environment: config.env.NODE_ENV,
     service: "career-sewa-api"
-  });
+  }, "Service is healthy");
+  response.send(res);
 });
 
-// Global error handler
-app.use((error, req, res, next) => {
-  loggerUtils.apiError(error, req);
-  
-  const statusCode = error.statusCode || 500;
-  const message = config.env.isProduction ? "Internal Server Error" : error.message;
-  
-  res.status(statusCode).json({
-    success: false,
-    message,
-    ...(config.env.isDevelopment && { stack: error.stack })
-  });
-});
+// 404 handler - must be before error handler
+app.use(notFoundHandler);
 
-// 404 handler
-app.use((req, res) => {
-  logger.warn(`404 Not Found: ${req.method} ${req.url}`, {
-    ip: req.ip,
-    userAgent: req.headers["user-agent"]
-  });
-  
-  res.status(404).json({
-    success: false,
-    message: "Route not found"
-  });
-});
+// Global error handler - must be last
+app.use(errorHandler);
+
+// Setup global error handlers for uncaught exceptions and unhandled rejections
+setupGlobalErrorHandlers();
 
 
 
