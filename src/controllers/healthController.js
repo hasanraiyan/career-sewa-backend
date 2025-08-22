@@ -1,7 +1,7 @@
 import { APIResponse, APIError } from "../utils/index.js";
 import config from "../config/env.js";
 import logger from "../config/logger.js";
-import mongoose from "mongoose";
+import database from "../config/database.js";
 import { promisify } from "util";
 import { exec } from "child_process";
 
@@ -56,27 +56,23 @@ export const getDetailedHealth = async (req, res, next) => {
 
     // 2. Database Status
     try {
-      const dbState = mongoose.connection.readyState;
-      const dbStates = {
-        0: "disconnected",
-        1: "connected",
-        2: "connecting",
-        3: "disconnecting",
-      };
-
+      const dbStatus = database.getConnectionStatus();
+      const isHealthy = await database.isHealthy();
+      
       healthChecks.database = {
-        status: dbState === 1 ? "healthy" : "unhealthy",
-        state: dbStates[dbState],
-        host: mongoose.connection.host,
-        name: mongoose.connection.name,
-        port: mongoose.connection.port,
-        collections: mongoose.connection.db ? Object.keys(mongoose.connection.db.collection).length : 0,
+        status: isHealthy ? "healthy" : "unhealthy",
+        state: dbStatus.currentState,
+        host: dbStatus.host,
+        name: dbStatus.name,
+        port: dbStatus.port,
+        readyState: dbStatus.readyState,
+        isConnected: dbStatus.isConnected,
       };
 
-      // Ping database to check responsiveness
-      if (dbState === 1) {
+      // Add response time if connected
+      if (isHealthy) {
         const pingStart = Date.now();
-        await mongoose.connection.db.admin().ping();
+        await database.isHealthy(); // This includes a ping
         healthChecks.database.responseTime = Date.now() - pingStart;
       }
     } catch (error) {
@@ -156,12 +152,27 @@ export const getDetailedHealth = async (req, res, next) => {
     };
 
     // 7. Dependencies Status
-    healthChecks.dependencies = {
-      status: "healthy",
-      mongoose: mongoose.version,
-      node: process.version,
-      npm: process.env.npm_version || "unknown",
-    };
+    try {
+      // Read package.json for version information
+      const packageJson = await import('../../package.json', { assert: { type: 'json' } });
+      
+      healthChecks.dependencies = {
+        status: "healthy",
+        mongoose: packageJson.default.dependencies.mongoose,
+        node: process.version,
+        npm: process.env.npm_version || "unknown",
+        express: packageJson.default.dependencies.express,
+        winston: packageJson.default.dependencies.winston,
+      };
+    } catch (error) {
+      // Fallback if package.json import fails
+      healthChecks.dependencies = {
+        status: "healthy",
+        node: process.version,
+        npm: process.env.npm_version || "unknown",
+        note: "Package.json import not available",
+      };
+    }
 
     // 8. External Services (add your external service checks here)
     healthChecks.externalServices = {
@@ -214,7 +225,7 @@ export const getDetailedHealth = async (req, res, next) => {
 export const getReadinessProbe = async (req, res, next) => {
   try {
     // Check if the application is ready to serve traffic
-    const isReady = mongoose.connection.readyState === 1;
+    const isReady = await database.isHealthy();
 
     if (isReady) {
       const response = APIResponse.success(
@@ -291,7 +302,8 @@ export const getHealthMetrics = async (req, res, next) => {
   try {
     const memoryUsage = process.memoryUsage();
     const uptime = process.uptime();
-    const dbState = mongoose.connection.readyState;
+    const dbStatus = database.getConnectionStatus();
+    const isDbHealthy = await database.isHealthy();
 
     // Prometheus format metrics
     const metrics = [
@@ -308,7 +320,11 @@ export const getHealthMetrics = async (req, res, next) => {
       ``,
       `# HELP career_sewa_database_status Database connection status (1=connected, 0=disconnected)`,
       `# TYPE career_sewa_database_status gauge`,
-      `career_sewa_database_status ${dbState === 1 ? 1 : 0}`,
+      `career_sewa_database_status ${isDbHealthy ? 1 : 0}`,
+      ``,
+      `# HELP career_sewa_database_ready_state Database ready state (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)`,
+      `# TYPE career_sewa_database_ready_state gauge`,
+      `career_sewa_database_ready_state ${dbStatus.readyState}`,
       ``,
     ].join("\n");
 

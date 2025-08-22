@@ -1,5 +1,4 @@
 {
-  "preset": "es6",
   "testEnvironment": "node",
   "extensionsToTreatAsEsm": [".js"],
   "globals": {
