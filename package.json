@@ -1,0 +1,26 @@
+{
+  "name": "career-sewa",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "backend",
+    "career-sewa",
+    "mern",
+    "express"
+  ],
+  "homepage": "https://github.com/hasanraiyan/career-sewa-backend#readme",
+  "bugs": {
+    "url": "https://github.com/hasanraiyan/career-sewa-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hasanraiyan/career-sewa-backend.git"
+  },
+  "license": "MIT",
+  "author": "Raiyan Hasan",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
