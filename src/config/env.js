@@ -20,9 +20,7 @@ dotenv.config({
 // Validate required environment variables
 const requiredEnvVars = ["NODE_ENV", "PORT", "MONGODB_URI"];
 
-const missingEnvVars = requiredEnvVars.filter(
-  (envVar) => !process.env[envVar]
-);
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
   throw new Error(
@@ -130,7 +128,7 @@ if (config.env.isProduction) {
   ];
 
   const missingProdVars = productionRequiredVars.filter(
-    (envVar) => !process.env[envVar] || process.env[envVar].includes("dev-")
+    envVar => !process.env[envVar] || process.env[envVar].includes("dev-")
   );
 
   if (missingProdVars.length > 0) {
