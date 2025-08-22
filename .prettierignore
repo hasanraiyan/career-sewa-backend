@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env*
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# Uploads and temp files
+uploads/
+temp/
+
+# Cache directories
+.cache/
+.npm/
+.eslintcache
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Documentation (if you want to keep original formatting)
+*.md
+
+# Config files that need specific formatting
+docker-compose.yml
+Dockerfile
